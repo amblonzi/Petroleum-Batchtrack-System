@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: batchtrack_backend
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./backend:/app
+      - backend_db:/app/data
+    environment:
+      - DATABASE_URL=sqlite:///./data/pipeline_tracker.db
+      - ALLOWED_ORIGINS=http://localhost:8081,http://localhost
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: batchtrack_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  backend_db:

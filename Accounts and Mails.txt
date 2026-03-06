@@ -1,0 +1,9 @@
+Database
+
+usernamne: admin
+Pass: Re4nC0([!42Q
+
+
+- Database Name (`yzbxjwqt_batchtrack_db`)
+    - Database Username (`admin`)
+    - Database Password : Re4nC0([!42Q
