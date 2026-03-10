@@ -14,6 +14,7 @@ import GainLoss from "./GainLoss";
 import { useQueryClient } from "@tanstack/react-query";
 import type { User } from "../types";
 import { useEffect } from "react";
+import { useAuthStore } from "../store/auth";
 
 export default function Dashboard() {
   const [mainTab, setMainTab] = useState<"runsheet" | "admin" | "batchlog" | "gainloss">("runsheet");
@@ -44,6 +45,12 @@ export default function Dashboard() {
 
   const queryClient = useQueryClient();
   const currentUser = queryClient.getQueryData<User>(["currentUser"]);
+  const setToken = useAuthStore((s) => s.setToken);
+
+  const handleLogout = () => {
+    setToken(null);
+    queryClient.clear();
+  };
 
   return (
     <div className="h-screen w-full bg-gray-900 text-white flex flex-col overflow-hidden">
@@ -123,6 +130,27 @@ export default function Dashboard() {
             )}
             <div className="text-[10px] text-gray-500 font-bold mt-1 uppercase tracking-tight">System Status: <span className="text-green-500/80">Optimal</span></div>
           </div>
+
+          <button
+            onClick={handleLogout}
+            className="ml-2 p-2 rounded-lg bg-gray-700/50 hover:bg-red-600/20 text-gray-400 hover:text-red-400 transition-all border border-gray-600 hover:border-red-500/30 group"
+            title="Log Out"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5 group-hover:scale-110 transition-transform"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
         </div>
       </header>
 
