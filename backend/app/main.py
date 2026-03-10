@@ -263,7 +263,7 @@ def get_stations(line: str = "L5", db: Session = Depends(get_db)):
 @app.get("/")
 def root():
     return {
-        "message": "BatchtrackOS API — KPC Multi-Line Pipeline Tracker",
+        "message": "BatchtrackOS API — KPC Multi-Product Pipeline (MPP) Tracker",
         "version": "3.0.0",
         "pipelines": "GET /pipelines/",
         "docs": "/docs",

@@ -27,8 +27,8 @@ export default function Login() {
       <div className="bg-gray-800 p-10 rounded-xl shadow-2xl w-full max-w-md flex flex-col items-center">
         <img src="/favicon.png" alt="BatchtrackOS Logo" className="w-24 h-24 mb-6 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
         <h1 className="text-4xl font-bold text-white mb-8 text-center leading-tight">
-          KPC Line V<br />
-          <span className="text-blue-400">BatchTracking</span> System
+          KPC Multi-Product<br />
+          <span className="text-blue-400">Pipeline (MPP)</span>
         </h1>
         <form onSubmit={handleLogin} className="space-y-6">
           <input
