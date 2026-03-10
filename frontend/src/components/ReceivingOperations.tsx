@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import api from "../services/api";
 import type { Station } from "../types";
+import { usePipeline } from "../context/PipelineContext";
+import StatusModal from "./StatusModal";
 
 interface VisualizationData {
   batches: Array<{
@@ -17,34 +19,52 @@ interface VisualizationData {
   stations: (Station & { cumulative_volume: number; received_volume: number })[];
 }
 
-const RECEIVING_STATIONS = ["PS8", "PS9", "PS10"];
-
 export default function ReceivingOperations() {
   const [selectedStationCode, setSelectedStationCode] = useState<string>("");
   const [volume, setVolume] = useState("");
+  const { selectedPipeline } = usePipeline();
   const queryClient = useQueryClient();
+
+  const [modal, setModal] = useState<{ isOpen: boolean; type: 'success' | 'error'; title: string; message: string }>({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: ''
+  });
 
   // Fetch visualization data to know what's available
   const { data: viz } = useQuery<VisualizationData>({
-    queryKey: ["visualization"],
+    queryKey: ["visualization", selectedPipeline?.line_number],
     queryFn: async () => {
-      const res = await axios.get("/api/visualization/current");
+      if (!selectedPipeline) return null;
+      const res = await api.get(`/visualization/current?line=${selectedPipeline.line_number}`);
       return res.data;
     },
     refetchInterval: 5000,
+    enabled: !!selectedPipeline,
   });
 
   const mutation = useMutation({
     mutationFn: (data: { batch_id: number; station_id: number; hourly_volume: number; entry_time: string }) => {
-      return axios.post("/api/flow-entries/", data);
+      return api.post("/flow-entries/", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["visualization"] });
       setVolume("");
-      alert("Product received successfully!");
+      setModal({
+        isOpen: true,
+        type: 'success',
+        title: 'RECEIPT CONFIRMED',
+        message: 'Product volume has been successfully logged and updated in the system.'
+      });
     },
     onError: (err) => {
-      alert("Error receiving product: " + err);
+      setModal({
+        isOpen: true,
+        type: 'error',
+        title: 'TRANSACTION FAILED',
+        message: 'There was an error communicating with the server: ' + err
+      });
     },
   });
 
@@ -75,7 +95,14 @@ export default function ReceivingOperations() {
   };
 
   return (
-    <div className="bg-gray-900 p-6 rounded-xl mt-6">
+    <div className="bg-gray-900 p-6 rounded-xl mt-6 relative">
+      <StatusModal
+        isOpen={modal.isOpen}
+        onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
+        type={modal.type}
+        title={modal.title}
+        message={modal.message}
+      />
       <h2 className="text-2xl font-bold text-white mb-6">Receiving Operations</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -88,11 +115,12 @@ export default function ReceivingOperations() {
               onChange={(e) => setSelectedStationCode(e.target.value)}
               className="w-full bg-gray-800 text-white rounded px-3 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
               required
+              disabled={!selectedPipeline}
             >
               <option value="">Select Station...</option>
-              {RECEIVING_STATIONS.map((code) => (
-                <option key={code} value={code}>
-                  {code}
+              {viz?.stations.filter(s => s.station_type === "receiving").map((s) => (
+                <option key={s.code} value={s.code}>
+                  {s.code}
                 </option>
               ))}
             </select>
@@ -145,7 +173,7 @@ export default function ReceivingOperations() {
         {/* Status / Info Panel */}
         <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
           <h3 className="text-lg font-bold text-white mb-4">Current Status</h3>
-          
+
           {selectedStation && activeBatch ? (
             <div className="space-y-4">
               <div className="flex justify-between items-center pb-2 border-b border-gray-700">
@@ -162,7 +190,7 @@ export default function ReceivingOperations() {
                 <span className="text-gray-400">Batch Name</span>
                 <span className="text-white font-mono text-sm">{activeBatch.batch_name}</span>
               </div>
-              
+
               <div className="mt-6">
                 <div className="text-sm text-gray-400 mb-1">Cumulative Received (This Batch)</div>
                 <div className="text-3xl font-bold text-green-400 font-mono">

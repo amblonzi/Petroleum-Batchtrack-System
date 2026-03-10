@@ -1,10 +1,10 @@
 import urllib.request
 import json
 
-BASE_URL = "http://127.0.0.1:8001/api"
+BASE_URL = "http://127.0.0.1:8001"
 
 try:
-    url = f"{BASE_URL}/visualization/current"
+    url = f"{BASE_URL}/visualization/current?line=L5"
     req = urllib.request.Request(url, method="GET")
     with urllib.request.urlopen(req) as response:
         viz = json.loads(response.read().decode())

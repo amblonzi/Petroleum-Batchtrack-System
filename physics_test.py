@@ -3,7 +3,7 @@ import urllib.request
 import urllib.error
 from datetime import datetime
 
-BASE_URL = "http://127.0.0.1:8001/api"
+BASE_URL = "http://127.0.0.1:8001"
 
 def make_request(url, method="GET", data=None, headers=None):
     if headers is None:
@@ -32,17 +32,18 @@ def get_token():
 def create_batch(token, name, product_id, volume):
     headers = {"Authorization": f"Bearer {token}"}
     data = {
+        "pipeline_id": 4, # L5 Pipeline
         "name": name,
         "product_id": product_id,
         "total_volume": volume
     }
-    return make_request(f"{BASE_URL}/batches/", method="POST", data=data, headers=headers)
+    return make_request(f"{BASE_URL}/batches/?line=L5", method="POST", data=data, headers=headers)
 
 def pump_batch(token, batch_id, volume):
     headers = {"Authorization": f"Bearer {token}"}
     data = {
         "batch_id": batch_id,
-        "station_id": 1, # PS1
+        "station_id": 15, # PS1 for L5
         "hourly_volume": volume,
         "entry_time": datetime.utcnow().isoformat() + "Z"
     }
@@ -50,7 +51,7 @@ def pump_batch(token, batch_id, volume):
 
 def get_viz(token):
     headers = {"Authorization": f"Bearer {token}"}
-    return make_request(f"{BASE_URL}/visualization/current", method="GET", headers=headers)
+    return make_request(f"{BASE_URL}/visualization/current?line=L5", method="GET", headers=headers)
 
 def run_test():
     try:

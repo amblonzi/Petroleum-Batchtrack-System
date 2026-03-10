@@ -19,7 +19,7 @@ export default function ReceiveProductModal({ station, activeBatch, onClose }: R
 
   const mutation = useMutation({
     mutationFn: (data: { batch_id: number; station_id: number; hourly_volume: number; entry_time: string }) => {
-      return axios.post("/api/flow-entries/", data);
+      return axios.post("/flow-entries/", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["visualization"] });
@@ -51,7 +51,7 @@ export default function ReceiveProductModal({ station, activeBatch, onClose }: R
           <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
           Receive Product at {station.code}
         </h3>
-        
+
         <div className="mb-6 bg-gray-700 p-4 rounded-lg border border-gray-600">
           <p className="text-sm text-gray-400 mb-1">Incoming Product</p>
           {activeBatch ? (
@@ -63,9 +63,9 @@ export default function ReceiveProductModal({ station, activeBatch, onClose }: R
               </div>
             </div>
           ) : (
-             <div className="text-yellow-400 text-sm flex items-center gap-2">
-               <span>⚠️ No product detected at this station.</span>
-             </div>
+            <div className="text-yellow-400 text-sm flex items-center gap-2">
+              <span>⚠️ No product detected at this station.</span>
+            </div>
           )}
         </div>
 
@@ -83,7 +83,7 @@ export default function ReceiveProductModal({ station, activeBatch, onClose }: R
               disabled={!activeBatch}
             />
           </div>
-          
+
           <div className="flex justify-end gap-2 mt-6">
             <button
               type="button"

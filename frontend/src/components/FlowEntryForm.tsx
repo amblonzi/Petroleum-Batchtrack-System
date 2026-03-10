@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import api from "../services/api";
 import type { Batch, Station } from "../types";
+import { usePipeline } from "../context/PipelineContext";
+import StatusModal from "./StatusModal";
 
 interface FlowEntryData {
   batch_id: number;
@@ -14,16 +16,26 @@ export default function FlowEntryForm() {
   const [selectedBatch, setSelectedBatch] = useState("");
   const [volume, setVolume] = useState("");
   const [stationId, setStationId] = useState("");
+  const { selectedPipeline } = usePipeline();
   const queryClient = useQueryClient();
 
+  const [modal, setModal] = useState<{ isOpen: boolean; type: 'success' | 'error'; title: string; message: string }>({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: ''
+  });
+
   const { data: batches } = useQuery<Batch[]>({
-    queryKey: ["batches"],
-    queryFn: () => axios.get("/api/batches/").then((r) => r.data),
+    queryKey: ["batches", selectedPipeline?.line_number],
+    queryFn: () => api.get(`/batches/?line=${selectedPipeline?.line_number}`).then((r) => r.data),
+    enabled: !!selectedPipeline,
   });
 
   const { data: stations } = useQuery<Station[]>({
-    queryKey: ["stations"],
-    queryFn: () => axios.get("/api/stations/").then((res) => res.data),
+    queryKey: ["stations", selectedPipeline?.line_number],
+    queryFn: () => api.get(`/stations/?line=${selectedPipeline?.line_number}`).then((res) => res.data),
+    enabled: !!selectedPipeline,
   });
 
   // Filter batches to only allow:
@@ -44,17 +56,27 @@ export default function FlowEntryForm() {
 
   const mutation = useMutation({
     mutationFn: (newFlow: FlowEntryData) => {
-      return axios.post("/api/flow-entries/", newFlow);
+      return api.post("/flow-entries/", newFlow);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["visualization"] });
       queryClient.invalidateQueries({ queryKey: ["batches"] });
       setVolume("");
       setStationId("");
-      alert("Flow recorded successfully!");
+      setModal({
+        isOpen: true,
+        type: 'success',
+        title: 'FLOW RECORDED',
+        message: 'The hourly flow rate has been successfully logged to the database.'
+      });
     },
     onError: (error) => {
-      alert("Error recording flow: " + error);
+      setModal({
+        isOpen: true,
+        type: 'error',
+        title: 'RECORDING ERROR',
+        message: 'Could not record flow data: ' + error
+      });
     },
   });
 
@@ -71,7 +93,14 @@ export default function FlowEntryForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-gray-800 p-6 rounded-lg shadow-lg">
+    <form onSubmit={handleSubmit} className="bg-gray-800 p-6 rounded-lg shadow-lg relative">
+      <StatusModal
+        isOpen={modal.isOpen}
+        onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
+        type={modal.type}
+        title={modal.title}
+        message={modal.message}
+      />
       <h3 className="text-xl font-bold text-white mb-4">Record Hourly Flow</h3>
       <div className="space-y-4">
         <div>
@@ -81,9 +110,10 @@ export default function FlowEntryForm() {
             onChange={(e) => setStationId(e.target.value)}
             className="w-full bg-gray-700 text-white p-2 rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
             required
+            disabled={!selectedPipeline}
           >
             <option value="">Select Station</option>
-            {stations?.filter(s => ["PS1", "PS8", "PS9", "PS10"].includes(s.code)).map((s) => (
+            {stations?.filter(s => ["lifting", "receiving"].includes(s.station_type)).map((s) => (
               <option key={s.id} value={s.id}>
                 {s.code} - {s.name}
               </option>

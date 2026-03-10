@@ -15,7 +15,7 @@ export default function EditBatchModal({ batch, onClose }: EditBatchModalProps) 
 
   const updateMutation = useMutation({
     mutationFn: async (data: { name: string; total_volume: number }) => {
-      await axios.put(`/api/batches/${batch.id}`, data);
+      await axios.put(`/batches/${batch.id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["batches"] });

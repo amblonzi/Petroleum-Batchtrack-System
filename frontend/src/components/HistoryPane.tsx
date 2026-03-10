@@ -1,8 +1,9 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import api from "../services/api";
 import type { FlowEntry, Station } from "../types";
+import { usePipeline } from "../context/PipelineContext";
 
 interface HistoryPaneProps {
   stations: Station[];
@@ -10,34 +11,35 @@ interface HistoryPaneProps {
 
 export default function HistoryPane({ stations }: HistoryPaneProps) {
   const [activeTab, setActiveTab] = useState<"lifting" | "receiving">("lifting");
+  const { selectedPipeline } = usePipeline();
 
   // Identify station IDs
-  const ps1 = stations.find((s) => s.code === "PS1");
-  const receivingStations = stations.filter((s) => ["PS8", "PS9", "PS10"].includes(s.code));
+  const liftingStation = stations.find((s) => s.station_type === "lifting");
+  const receivingStations = stations.filter((s) => s.station_type === "receiving");
   const receivingIds = receivingStations.map((s) => s.id);
 
   const { data: history } = useQuery<FlowEntry[]>({
-    queryKey: ["flow-history", activeTab],
+    queryKey: ["flow-history", activeTab, selectedPipeline?.line_number],
     queryFn: async () => {
+      if (!selectedPipeline) return null;
       const params = new URLSearchParams();
       params.append("limit", "50");
-      
+      params.append("line", selectedPipeline.line_number);
+
       if (activeTab === "lifting") {
-        if (ps1) params.append("station_id", ps1.id.toString());
-      } 
-      // For receiving, we fetch all and filter client-side or we could enhance backend to accept multiple IDs
-      // For now, let's fetch all and filter client-side for simplicity if backend only takes one ID
-      // Actually, let's just fetch all history and filter here to avoid complex backend logic for now
-      
-      const res = await axios.get("/api/flow-entries/history");
+        if (liftingStation) params.append("station_id", liftingStation.id.toString());
+      }
+
+      const res = await api.get(`/flow-entries/history?${params.toString()}`);
       return res.data;
     },
     refetchInterval: 5000,
+    enabled: !!selectedPipeline,
   });
 
   const filteredHistory = history?.filter((entry) => {
     if (activeTab === "lifting") {
-      return entry.station_id === ps1?.id;
+      return entry.station_id === liftingStation?.id;
     } else {
       return receivingIds.includes(entry.station_id);
     }
@@ -53,23 +55,21 @@ export default function HistoryPane({ stations }: HistoryPaneProps) {
       <div className="flex gap-2 mb-4 bg-gray-900 p-1 rounded-lg">
         <button
           onClick={() => setActiveTab("lifting")}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-bold transition-colors ${
-            activeTab === "lifting"
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-bold transition-colors ${activeTab === "lifting"
               ? "bg-blue-600 text-white shadow"
               : "text-gray-400 hover:text-white hover:bg-gray-800"
-          }`}
+            }`}
         >
-          Lifting (PS1)
+          Lifting
         </button>
         <button
           onClick={() => setActiveTab("receiving")}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-bold transition-colors ${
-            activeTab === "receiving"
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-bold transition-colors ${activeTab === "receiving"
               ? "bg-green-600 text-white shadow"
               : "text-gray-400 hover:text-white hover:bg-gray-800"
-          }`}
+            }`}
         >
-          Receiving (PS8-10)
+          Receiving
         </button>
       </div>
 
@@ -90,9 +90,8 @@ export default function HistoryPane({ stations }: HistoryPaneProps) {
             >
               <div>
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
-                    station?.code === "PS1" ? "bg-blue-900 text-blue-200" : "bg-green-900 text-green-200"
-                  }`}>
+                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${station?.station_type === "lifting" ? "bg-blue-900 text-blue-200" : "bg-green-900 text-green-200"
+                    }`}>
                     {station?.code}
                   </span>
                   <span className="text-gray-300 text-sm font-medium">

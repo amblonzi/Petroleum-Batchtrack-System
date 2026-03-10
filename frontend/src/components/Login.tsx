@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 import { useAuthStore } from "../store/auth";
 
 export default function Login() {
@@ -15,7 +15,7 @@ export default function Login() {
       formData.append("username", username);
       formData.append("password", password);
 
-      const res = await axios.post("/api/auth/login", formData);
+      const res = await api.post("/auth/login", formData);
       setToken(res.data.access_token);
     } catch (err: any) {
       setError("Login failed. Check credentials.");

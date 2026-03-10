@@ -8,7 +8,7 @@ export default function ShelvedBatchesList() {
   const [editingBatch, setEditingBatch] = useState<Batch | null>(null);
   const { data: batches, isLoading } = useQuery({
     queryKey: ["batches"],
-    queryFn: () => axios.get<Batch[]>("/api/batches/").then((r) => r.data),
+    queryFn: () => axios.get<Batch[]>("/batches/").then((r) => r.data),
     refetchInterval: 5000,
   });
 
@@ -54,7 +54,7 @@ export default function ShelvedBatchesList() {
           ))}
         </div>
       )}
-      
+
       {editingBatch && (
         <EditBatchModal
           batch={editingBatch}

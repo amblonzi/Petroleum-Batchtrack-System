@@ -1,21 +1,23 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import api from "../services/api";
 import type { Product } from "../types";
+import { usePipeline } from "../context/PipelineContext";
 
 export default function CreateBatchForm() {
   const [name, setName] = useState("");
   const [productId, setProductId] = useState("");
   const [volume, setVolume] = useState("");
+  const { selectedPipeline } = usePipeline();
   const queryClient = useQueryClient();
 
   const { data: products } = useQuery<Product[]>({
     queryKey: ["products"],
-    queryFn: () => axios.get("/api/products/").then((r) => r.data),
+    queryFn: () => api.get("/products/").then((r) => r.data),
   });
 
   const mutation = useMutation({
-    mutationFn: (data: any) => axios.post("/api/batches/", data),
+    mutationFn: (data: any) => api.post(`/batches/?line=${selectedPipeline?.line_number}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["batches"] }); // Invalidate batches list
       setName("");

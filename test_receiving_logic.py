@@ -4,7 +4,7 @@ import urllib.parse
 import json
 from datetime import datetime
 
-BASE_URL = "http://localhost:8000/api"
+BASE_URL = "http://localhost:8001"
 
 def get_access_token():
     url = f"{BASE_URL}/auth/login"
@@ -35,7 +35,8 @@ def test_receiving_logic():
     # 1. Get current visualization to find a batch and its position
     print("Fetching pipeline state...")
     try:
-        with urllib.request.urlopen(f"{BASE_URL}/visualization/current") as response:
+        req = urllib.request.Request(f"{BASE_URL}/visualization/current?line=L5", headers={"Authorization": f"Bearer {token}"})
+        with urllib.request.urlopen(req) as response:
             data = json.loads(response.read().decode())
     except Exception as e:
         print(f"Failed to get visualization: {e}")

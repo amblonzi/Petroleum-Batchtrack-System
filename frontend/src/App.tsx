@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import api from "./services/api";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import { useAuthStore } from "./store/auth";
@@ -13,7 +14,7 @@ function App() {
   const { data: user, isLoading, isError } = useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
-      const res = await axios.get("/api/auth/me");
+      const res = await api.get("/auth/me");
       return res.data;
     },
     enabled: !!token,
