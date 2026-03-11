@@ -253,6 +253,13 @@ def create_flow_entry(db: Session, flow_entry: schemas.FlowEntryCreate, user_id:
                 f"Batch is at KM {batch_pos.trailing_edge_km:.2f}–{batch_pos.leading_edge_km:.2f}."
             )
 
+    # Validate volume against batch balance for lifting stations
+    # The 'station' and 'batch' objects are already fetched above.
+    if station.station_type == "lifting":
+        balance = batch.total_volume - batch.pumped_volume
+        if flow_entry.hourly_volume > balance + 0.01: # Add a small tolerance for floating point
+            raise ValueError(f"Volume exceeds batch balance. Remaining: {balance:.2f}")
+
     db_flow = models.FlowEntry(**flow_entry.model_dump(), entered_by=user_id)
     db.add(db_flow)
     db.commit()

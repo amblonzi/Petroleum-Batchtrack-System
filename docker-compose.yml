@@ -13,7 +13,7 @@ services:
       - backend_db:/app/data
     environment:
       - DATABASE_URL=sqlite:///./data/pipeline_tracker.db
-      - ALLOWED_ORIGINS=http://localhost:8081,http://localhost
+      - ALLOWED_ORIGINS=http://batchtrackos.inphora.net,https://batchtrackos.inphora.net,http://localhost:8081,http://localhost
     restart: always
 
   frontend:
@@ -22,7 +22,7 @@ services:
       dockerfile: Dockerfile
     container_name: batchtrack_frontend
     ports:
-      - "3000:80"
+      - "80:80"
     depends_on:
       - backend
     restart: always

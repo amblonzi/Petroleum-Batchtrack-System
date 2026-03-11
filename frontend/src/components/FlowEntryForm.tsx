@@ -84,10 +84,29 @@ export default function FlowEntryForm() {
     e.preventDefault();
     if (!selectedBatch || !volume || !stationId) return;
 
+    const batchIdNum = parseInt(selectedBatch);
+    const batch = batches?.find((b) => b.id === batchIdNum);
+    const volNum = parseFloat(volume);
+
+    if (batch) {
+      const balance = batch.total_volume - batch.pumped_volume;
+      // Only validate for lifting stations (where volume is added)
+      const station = stations?.find(s => s.id === parseInt(stationId));
+      if (station?.station_type === 'lifting' && volNum > balance + 0.01) { // 0.01 for float precision
+        setModal({
+          isOpen: true,
+          type: 'error',
+          title: 'VALIDATION ERROR',
+          message: `The entered volume (${volNum.toLocaleString()} m³) exceeds the remaining batch balance (${balance.toLocaleString()} m³).`
+        });
+        return;
+      }
+    }
+
     mutation.mutate({
-      batch_id: parseInt(selectedBatch),
+      batch_id: batchIdNum,
       station_id: parseInt(stationId),
-      hourly_volume: parseFloat(volume),
+      hourly_volume: volNum,
       entry_time: new Date().toISOString(),
     });
   };

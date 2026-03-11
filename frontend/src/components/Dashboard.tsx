@@ -35,6 +35,13 @@ export default function Dashboard() {
     hour12: false,
   }).format(currentTime);
 
+  const kenyanDate = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Africa/Nairobi",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(currentTime);
+
   const { pipelines, selectedPipeline, setSelectedPipeline, isLoading: pipelineLoading } = usePipeline();
 
   const { data: viz } = useQuery({
@@ -117,7 +124,7 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-6">
           <div className="flex flex-col items-end border-r border-gray-700 pr-6">
-            <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-0.5">Nairobi (EAT)</div>
+            <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-0.5">{kenyanDate}</div>
             <div className="text-2xl font-black text-white font-mono tracking-tighter tabular-nums leading-none">
               {kenyanTime}
             </div>
