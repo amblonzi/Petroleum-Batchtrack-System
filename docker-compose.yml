@@ -23,8 +23,11 @@ services:
     container_name: batchtrack_frontend
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - backend
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     restart: always
 
 volumes:
