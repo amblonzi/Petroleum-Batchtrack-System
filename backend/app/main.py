@@ -29,6 +29,8 @@ origins = [
     "http://127.0.0.1:5174",
     "https://linev.inphora.net",
     "https://www.linev.inphora.net",
+    "https://batchtrackos.inphora.net",
+    "http://batchtrackos.inphora.net",
 ]
 env_origins = os.getenv("ALLOWED_ORIGINS")
 if env_origins:
