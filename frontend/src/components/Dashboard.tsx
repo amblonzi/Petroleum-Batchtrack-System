@@ -11,6 +11,7 @@ import ReceivingOperations from "./ReceivingOperations";
 import AdminPanel from "./AdminPanel";
 import BatchLog from "./BatchLog";
 import GainLoss from "./GainLoss";
+import LiveBatchesPane from "./LiveBatchesPane";
 import { useQueryClient } from "@tanstack/react-query";
 import type { User } from "../types";
 import { useEffect } from "react";
@@ -199,13 +200,16 @@ export default function Dashboard() {
               {/* Tab Content */}
               <div className="p-6">
                 {activeTab === "operations" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="space-y-6 lg:col-span-1">
                       <CreateBatchForm />
                       <FlowEntryForm />
                     </div>
-                    <div>
+                    <div className="lg:col-span-1">
                       <ReceivingOperations />
+                    </div>
+                    <div className="lg:col-span-1 h-full">
+                      <LiveBatchesPane />
                     </div>
                   </div>
                 )}

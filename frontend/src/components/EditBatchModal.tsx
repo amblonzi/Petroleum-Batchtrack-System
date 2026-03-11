@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Batch } from "../types";
 
@@ -15,7 +15,7 @@ export default function EditBatchModal({ batch, onClose }: EditBatchModalProps) 
 
   const updateMutation = useMutation({
     mutationFn: async (data: { name: string; total_volume: number }) => {
-      await axios.put(`/batches/${batch.id}`, data);
+      await api.put(`/batches/${batch.id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["batches"] });

@@ -223,6 +223,17 @@ def update_batch(
     return db_batch
 
 
+@app.delete("/batches/{batch_id}")
+def delete_batch(
+    batch_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    if not crud.delete_batch(db, batch_id=batch_id):
+        raise HTTPException(status_code=404, detail="Batch not found")
+    return {"status": "success"}
+
+
 # ── Flow Entries ──────────────────────────────────────────────────────────────
 @app.post("/flow-entries/", response_model=schemas.FlowEntry)
 def create_flow_entry(

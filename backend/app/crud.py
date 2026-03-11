@@ -186,6 +186,19 @@ def update_batch(db: Session, batch_id: int, batch_update: schemas.BatchCreate) 
     return db_batch
 
 
+def delete_batch(db: Session, batch_id: int) -> bool:
+    db_batch = db.query(models.Batch).filter(models.Batch.id == batch_id).first()
+    if not db_batch:
+        return False
+    
+    # Delete associated flow entries first
+    db.query(models.FlowEntry).filter(models.FlowEntry.batch_id == batch_id).delete()
+    
+    db.delete(db_batch)
+    db.commit()
+    return True
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # FLOW ENTRY
 # ══════════════════════════════════════════════════════════════════════════════

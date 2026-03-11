@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../services/api";
 import type { Product } from "../types";
 import { usePipeline } from "../context/PipelineContext";
+import StatusModal from "./StatusModal";
 
 export default function CreateBatchForm() {
   const [name, setName] = useState("");
@@ -10,6 +11,9 @@ export default function CreateBatchForm() {
   const [volume, setVolume] = useState("");
   const { selectedPipeline } = usePipeline();
   const queryClient = useQueryClient();
+  const [showStatus, setShowStatus] = useState(false);
+  const [statusType, setStatusType] = useState<'success' | 'error'>('success');
+  const [statusInfo, setStatusInfo] = useState({ title: "", message: "" });
 
   const { data: products } = useQuery<Product[]>({
     queryKey: ["products"],
@@ -23,7 +27,21 @@ export default function CreateBatchForm() {
       setName("");
       setProductId("");
       setVolume("");
+      setStatusType('success');
+      setStatusInfo({
+        title: "BATCH CREATED",
+        message: `Batch "${name}" has been successfully created for Line ${selectedPipeline?.line_number}`
+      });
+      setShowStatus(true);
     },
+    onError: (error: any) => {
+      setStatusType('error');
+      setStatusInfo({
+        title: "CREATION FAILED",
+        message: error.response?.data?.detail || "An error occurred while creating the batch."
+      });
+      setShowStatus(true);
+    }
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -75,6 +93,14 @@ export default function CreateBatchForm() {
           Create Batch (Shelved)
         </button>
       </form>
+
+      <StatusModal
+        isOpen={showStatus}
+        onClose={() => setShowStatus(false)}
+        type={statusType}
+        title={statusInfo.title}
+        message={statusInfo.message}
+      />
     </div>
   );
 }
